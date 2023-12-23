@@ -35,9 +35,12 @@ def edit_settings():
 def add_addon():
     """add an addon"""
     print(f"current addons:\n{addons}")
-    name = input("give a name to the new addon:")
+    new_name = input("give a name to the new addon:")
     url = input("insert the repo url of the addon")
-    addons[name] = url
+    confirm = input(f"add {new_name} with URL {url}? y/n")
+    if confirm.lower() in ["y", "yes"]:
+        addons[new_name] = url
+        return 0
 
 
 def update():
@@ -57,7 +60,10 @@ def update():
                 download_url = asset["browser_download_url"]
                 zip_name = asset["name"]
                 break
-        assert download_url, "failed to get download url"
+        if not download_url:
+            print(f"could not get download URL, make sure the github repo given for {addon} as zip"
+                  f"files in it's release")
+            continue
         print("downloading....")
         response = requests.get(download_url, stream=True)
         response.raise_for_status()
@@ -97,7 +103,7 @@ if __name__ == '__main__':
         if option in ["1", "update"]:
             update()
         elif option in ["2", "add"]:
-            add_addon(addons)
+            add_addon()
         elif option in ["3", "settings"]:
             edit_settings()
         elif option in ["4", "remove"]:
