@@ -61,9 +61,13 @@ def update():
                 zip_name = asset["name"]
                 break
         if not download_url:
-            print(f"could not get download URL, make sure the github repo given for {addon} as zip"
-                  f"files in it's release")
-            continue
+            source_install = input(f"could not get zip download from {addon}, "
+                                   f"try to install using source zip? y/n")
+            if source_install.lower() in ["y", "yes"]:
+                download_url = release_data["zipball_url"]
+                zip_name = f"{repo}.zip"
+            else:
+                continue
         print("downloading....")
         response = requests.get(download_url, stream=True)
         response.raise_for_status()
