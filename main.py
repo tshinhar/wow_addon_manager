@@ -124,5 +124,3 @@ if __name__ == '__main__':
         for name in zip_names:
             os.remove(name)
     print("by by")
-
-
