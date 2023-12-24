@@ -41,4 +41,8 @@ jobs:
       - name: Realse  
         uses: ncipollo/release-action@v1
         with:
+          allowUpdates: true
           artifacts: "dist/wow_addon_manager"
+          commit: ${{ github.ref_name }}
+          tag: ${{ github.ref_name }}
+
