@@ -6,6 +6,7 @@ import json
 import requests
 import os
 import zipfile
+import shutil
 
 
 def main_menu():
@@ -23,12 +24,12 @@ def main_menu():
 def edit_settings():
     """add an addon"""
     print(f"current addons:\n{settings}")
-    name = input("what setting do you want to change?")
-    if name not in settings:
+    setting_name = input("what setting do you want to change?")
+    if setting_name not in settings:
         print("this setting dose not exist, check your spelling!")
         return 1
     value = input("insert new value for the setting")
-    settings[name] = value
+    settings[setting_name] = value
     return 0
 
 
@@ -85,11 +86,21 @@ def update():
 
 def remove():
     """removes an addon"""
-    print(f"current addons:\n{addons}")
-    name = input("which addon you wish to remove?")
-    confirm = input(f"are you sure you want to remove {name}? y/n")
+    path = settings["addons_path"]
+    installed_addons = [d for d in os.listdir(settings["addons_path"]) if os.path.isdir(os.path.join(path, d))]
+    print(f"current addons:\n{installed_addons}")
+    addon_names = input("which addon/s you wish to remove? list the ones you want to remove separated by ','"
+                        "or use 'all' to remove everything")
+    confirm = input(f"{addon_names} will be removed please confirm? y/n")
     if confirm.lower() in ["y", "yes"]:
-        del addons[name]
+        if addon_names == "all":
+            addon_names = installed_addons
+        for addon_name in addon_names.split(","):
+            print(f"removing {addon_name}...")
+            shutil.rmtree(os.path.join(path, addon_name))
+            remove_repo = input(f"do you also want to remove the repo for {addon_name}? y/n")
+            if remove_repo.lower() in ["yes", "y"]:
+                del addons[addon_name]
 
 
 if __name__ == '__main__':
@@ -118,9 +129,10 @@ if __name__ == '__main__':
     with open("addons.json", "w") as afile:
         json.dump(addons, afile)
 
-    cleanup = input("remove downloaded zip files before exiting? y/n")
-    if cleanup.lower() in ["y", "yes"]:
-        print("removing....")
-        for name in zip_names:
-            os.remove(name)
+    if zip_names:
+        cleanup = input("remove downloaded zip files before exiting? y/n")
+        if cleanup.lower() in ["y", "yes"]:
+            print("removing....")
+            for name in zip_names:
+                os.remove(name)
     print("by by")
