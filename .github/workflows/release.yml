@@ -1,0 +1,44 @@
+name: Build Workflow
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          architecture: 'x64'
+      
+      - name: Install requirements
+        run: |
+          pip install -r requirements.txt
+      
+      - name: Run PyInstaller
+        run: |
+          python -m pyinstaller --noconfirm --onedir --console --name "wow_addon_manager"  "main.py"
+      
+      - name: Copy config files
+        run: |
+          copy *.json dist\wow_addon_manager
+      
+      - name: Upload artifacts 
+        uses: actions/upload-artifact@v4
+        with:
+          name: wow_addons_manager
+          path: dist/wow_addon_manager
+
+      - name: Realse  
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "dist/wow_addon_manager"
