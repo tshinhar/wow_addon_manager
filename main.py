@@ -37,8 +37,8 @@ def add_addon():
     """add an addon"""
     print(f"current addons:\n{addons}")
     new_name = input("give a name to the new addon:")
-    url = input("insert the repo url of the addon")
-    confirm = input(f"add {new_name} with URL {url}? y/n")
+    url = input("insert the repo url of the addon (github) or the addon id (curseforge)")
+    confirm = input(f"add {new_name} with URL/ID {url}? y/n")
     if confirm.lower() in ["y", "yes"]:
         addons[new_name] = url
         return 0
@@ -47,28 +47,40 @@ def add_addon():
 def update():
     """update all currently listed addons to latest version"""
     for addon in addons:
-        owner, repo = addons[addon].lstrip("https://github.com/").split("/")
-        response = requests.get(f"https://api.github.com/repos/{owner}/{repo}/releases/latest")
-        response.raise_for_status()
-
-        release_data = response.json()
-
-        print(f"getting downlaod URL for {repo}")
         download_url = ""
         zip_name = ""
-        for asset in release_data["assets"]:
-            if asset["name"].endswith(".zip"):
-                download_url = asset["browser_download_url"]
-                zip_name = asset["name"]
-                break
-        if not download_url:
-            source_install = input(f"could not get zip download from {addon}, "
-                                   f"try to install using source zip? y/n")
-            if source_install.lower() in ["y", "yes"]:
-                download_url = release_data["zipball_url"]
-                zip_name = f"{repo}.zip"
-            else:
-                continue
+        if addons[addon].isnumeric(): # curseforge
+            print("getting latest version from curseforge...")
+            details = requests.get(f"https://www.curseforge.com/api/v1/mods/{addons[addon]}/files")
+            details.raise_for_status()
+            files = details.json()
+            addon_id = str(files["data"][0]["id"])
+            file_name = files["data"][0]["fileName"]
+            assert len(addon_id) == 7
+            download_url = f"https://mediafilez.forgecdn.net/files/{addon_id[0:4]}/{addon_id[4:]}/{file_name}"
+            zip_name = file_name
+        else:
+            owner, repo = addons[addon].lstrip("https://github.com/").split("/")
+            response = requests.get(f"https://api.github.com/repos/{owner}/{repo}/releases/latest")
+            response.raise_for_status()
+
+            release_data = response.json()
+
+            print(f"getting downlaod URL for {repo}")
+
+            for asset in release_data["assets"]:
+                if asset["name"].endswith(".zip"):
+                    download_url = asset["browser_download_url"]
+                    zip_name = asset["name"]
+                    break
+            if not download_url:
+                source_install = input(f"could not get zip download from {addon}, "
+                                    f"try to install using source zip? y/n")
+                if source_install.lower() in ["y", "yes"]:
+                    download_url = release_data["zipball_url"]
+                    zip_name = f"{repo}.zip"
+                else:
+                    continue
         print("downloading....")
         response = requests.get(download_url, stream=True)
         response.raise_for_status()
@@ -81,7 +93,7 @@ def update():
         zip_names.append(zip_name)
         with zipfile.ZipFile(zip_name, 'r') as zippy:
             zippy.extractall(settings["addons_path"])
-        print(f"successfully installed {repo}")
+        print(f"successfully installed {zip_name}")
 
 
 def remove():
