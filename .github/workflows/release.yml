@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - '*.py'
   workflow_dispatch:
 
 jobs:
@@ -43,6 +45,15 @@ jobs:
         with:
           name: wow_addons_manager
           path: dist/wow_addon_manager
+      
+      - name: Create tag
+        uses: rickstaa/action-create-tag@v1
+        id: "tag_create"
+        with:
+          tag: "$(date +'%y%m%d%H%M')"
+          tag_exists_error: false
+          message: "Latest release"
+
 
       - name: Realse  
         uses: ncipollo/release-action@v1
