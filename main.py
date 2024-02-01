@@ -60,7 +60,7 @@ def update():
             download_url = f"https://mediafilez.forgecdn.net/files/{addon_id[0:4]}/{addon_id[4:]}/{file_name}"
             zip_name = file_name
         else:
-            owner, repo = addons[addon].lstrip("https://github.com/").split("/")
+            owner, repo = addons[addon].replace("https://github.com/", "").split("/")
             response = requests.get(f"https://api.github.com/repos/{owner}/{repo}/releases/latest")
             response.raise_for_status()
 
