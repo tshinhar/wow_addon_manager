@@ -55,7 +55,7 @@ jobs:
           message: "Latest release"
 
 
-      - name: Realse  
+      - name: Release
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
