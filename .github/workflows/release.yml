@@ -11,6 +11,8 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
+    permissions:
+      contents: write
     steps:
     
       - name: Checkout
@@ -57,17 +59,17 @@ jobs:
           path: dist/wow_addon_manager
       
       - name: Create tag
-        uses: rickstaa/action-create-tag@v1
-        id: "tag_create"
-        with:
-          tag: "${{ env.release_tag }}"
-          tag_exists_error: false
-          message: "Latest release"
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f -a "${{ env.release_tag }}" -m "Latest release"
+          git push origin "${{ env.release_tag }}" --force
 
       - name: Release  
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
           artifacts: "wow_addon_manager.zip"
-          commit: ${{ env.sha_short }}
+          commit: ${{ github.sha }}
           tag: ${{ env.release_tag }}
