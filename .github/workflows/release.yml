@@ -21,6 +21,7 @@ jobs:
         run: |
           echo "sha_short=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
           echo "branch=$(echo ${GITHUB_REF#refs/heads/})" >> "$GITHUB_ENV"
+          echo "release_tag=$(date +'%y%m%d%H%M')" >> "$GITHUB_ENV"
         
       - name: Install Python
         uses: actions/setup-python@v5
@@ -32,13 +33,22 @@ jobs:
         run: |
           pip install -r requirements.txt
       
+      - name: Run unit tests
+        run: |
+          python -m unittest discover -s tests -v
+      
       - name: Run PyInstaller
         run: |
-          pyinstaller --noconfirm --onedir --console --name "wow_addon_manager"  "main.py"
+          pyinstaller --noconfirm --onedir --console --name "wow_addon_manager" "main.py"
       
       - name: Copy config files
         run: |
           copy *.json dist\wow_addon_manager
+
+      - name: Archive build for release
+        shell: pwsh
+        run: |
+          Compress-Archive -Path dist/wow_addon_manager/* -DestinationPath wow_addon_manager.zip -Force
       
       - name: Upload artifacts 
         uses: actions/upload-artifact@v4
@@ -50,16 +60,14 @@ jobs:
         uses: rickstaa/action-create-tag@v1
         id: "tag_create"
         with:
-          tag: "$(date +'%y%m%d%H%M')"
+          tag: "${{ env.release_tag }}"
           tag_exists_error: false
           message: "Latest release"
 
-
-      - name: Realse  
+      - name: Release  
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          artifacts: "dist/wow_addon_manager"
+          artifacts: "wow_addon_manager.zip"
           commit: ${{ env.sha_short }}
-          tag: ${{ github.ref_name }}
-
+          tag: ${{ env.release_tag }}

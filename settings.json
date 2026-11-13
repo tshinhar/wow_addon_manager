@@ -1,1 +1,6 @@
-{"addons_path": "C:\\Users\\tshin\\Downloads\\wow_addons_test"}
+{
+    "addons_path": "C:\\Users\\tshin\\Downloads\\wow_addons_test",
+    "wow_forever_addons_path": "C:\\Users\\tshin\\Downloads\\wow_forever_addons_test",
+    "active_game": "wow",
+    "version": "1.0.0"
+}
